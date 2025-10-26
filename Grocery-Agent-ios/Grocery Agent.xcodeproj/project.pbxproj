@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B4A3F0422ED1234500AB12CD /* LiveKit in Frameworks */ = {isa = PBXBuildFile; productRef = B4A3F0412ED1234500AB12CD /* LiveKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		14751BF52EACD7E800220862 /* Grocery Agent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Grocery Agent.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4A3F0422ED1234500AB12CD /* LiveKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = "Grocery Agent";
 			packageProductDependencies = (
+				B4A3F0412ED1234500AB12CD /* LiveKit */,
 			);
 			productName = "Grocery Agent";
 			productReference = 14751BF52EACD7E800220862 /* Grocery Agent.app */;
@@ -101,6 +107,9 @@
 			targets = (
 				14751BF42EACD7E800220862 /* Grocery Agent */,
 			);
+			packageReferences = (
+				B4A3F0402ED1234500AB12CD /* LiveKit */,
+			);
 		};
 /* End PBXProject section */
 
@@ -123,6 +132,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B4A3F0402ED1234500AB12CD /* LiveKit */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/livekit/client-sdk-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B4A3F0412ED1234500AB12CD /* LiveKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B4A3F0402ED1234500AB12CD /* LiveKit */;
+			productName = LiveKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		14751BFE2EACD7E900220862 /* Debug */ = {

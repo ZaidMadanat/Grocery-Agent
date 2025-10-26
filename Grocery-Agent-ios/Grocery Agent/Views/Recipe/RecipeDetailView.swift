@@ -11,6 +11,8 @@ struct RecipeDetailView: View {
     let meal: Meal
     @ObservedObject var appModel: AppViewModel
     @StateObject private var viewModel: RecipeDetailViewModel
+    @ObservedObject private var voiceManager = VoiceSessionManager.shared
+    @State private var voiceErrorMessage: String?
 
     init(meal: Meal, appModel: AppViewModel) {
         self.meal = meal
@@ -44,15 +46,12 @@ struct RecipeDetailView: View {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     Task {
-                        do {
-                            _ = try await VoiceService.createSession()
-                        } catch {
-                            print("voice session error:", error)
-                        }
+                        await voiceManager.toggleSession()
                     }
                 } label: {
-                    Label("Voice", systemImage: "waveform")
+                    Label(voiceButtonTitle, systemImage: voiceButtonIcon)
                 }
+                .disabled(voiceManager.isConnecting)
             }
         }
         .toolbar {
@@ -69,6 +68,16 @@ struct RecipeDetailView: View {
         .navigationTitle(meal.name)
         .navigationBarTitleDisplayMode(.inline)
         .background(Color.agentGroupedBackground.ignoresSafeArea())
+        .onChange(of: voiceManager.lastError?.localizedDescription) { _, message in
+            voiceErrorMessage = message
+        }
+        .alert("Voice Session", isPresented: voiceAlertBinding) {
+            Button("OK", role: .cancel) {
+                voiceErrorMessage = nil
+            }
+        } message: {
+            Text(voiceErrorMessage ?? "Unknown error")
+        }
     }
 }
 
@@ -93,13 +102,22 @@ private extension RecipeDetailView {
                     .foregroundStyle(.white)
                 Text(viewModel.recipe.summary)
                     .foregroundStyle(.white.opacity(0.85))
-                Label("Live voice help", systemImage: viewModel.showVoiceHelp ? "waveform.circle.fill" : "waveform")
+                Label(voiceStatusLabel, systemImage: voiceStatusIcon)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(.thinMaterial, in: Capsule())
+                    .background(voiceStatusBackground, in: Capsule())
+                    .overlay(alignment: .trailing) {
+                        if voiceManager.isConnecting {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .tint(.white)
+                                .scaleEffect(0.6)
+                                .padding(.trailing, 8)
+                        }
+                    }
                     .onTapGesture {
-                        withAnimation(.spring) {
-                            viewModel.showVoiceHelp.toggle()
+                        Task {
+                            await voiceManager.toggleSession()
                         }
                     }
             }
@@ -191,6 +209,51 @@ private extension RecipeDetailView {
         }
         .padding()
         .background(Color.agentSecondaryBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+}
+
+private extension RecipeDetailView {
+    var voiceStatusLabel: String {
+        if voiceManager.isConnecting {
+            return "Voice: connecting…"
+        }
+        if voiceManager.isConnected {
+            return "Voice session live"
+        }
+        return "Live voice help"
+    }
+
+    var voiceStatusIcon: String {
+        voiceManager.isConnected ? "waveform.circle.fill" : "waveform"
+    }
+
+    var voiceStatusBackground: some ShapeStyle {
+        voiceManager.isConnected ? AnyShapeStyle(Color.white.opacity(0.25)) : AnyShapeStyle(.thinMaterial)
+    }
+
+    var voiceButtonTitle: String {
+        if voiceManager.isConnecting {
+            return "Connecting…"
+        }
+        return voiceManager.isConnected ? "Hang Up" : "Voice"
+    }
+
+    var voiceButtonIcon: String {
+        if voiceManager.isConnecting {
+            return "waveform"
+        }
+        return voiceManager.isConnected ? "waveform.circle.fill" : "waveform"
+    }
+
+    var voiceAlertBinding: Binding<Bool> {
+        Binding(
+            get: { voiceErrorMessage != nil },
+            set: { newValue in
+                if !newValue {
+                    voiceErrorMessage = nil
+                }
+            }
+        )
     }
 }
 

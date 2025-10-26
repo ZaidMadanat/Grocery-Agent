@@ -22,17 +22,15 @@ final class VoiceSessionManager: ObservableObject {
         lastError = nil
 
         do {
-            let session = try await VoiceService.createSession()
+            let session = try await VoiceService.createSession(room: activeRoomName)
 
             let room = Room()
             room.add(delegate: self)
 
             try await room.connect(url: session.url, token: session.token)
 
-            if let localParticipant = room.localParticipant {
-                try await localParticipant.setCamera(enabled: false)
-                try await localParticipant.setMicrophone(enabled: true)
-            }
+            try await room.localParticipant.setCamera(enabled: false)
+            try await room.localParticipant.setMicrophone(enabled: true)
 
             self.room = room
             activeRoomName = session.room

@@ -13,7 +13,6 @@ final class RecipeDetailViewModel: ObservableObject {
     @Published private(set) var recipe: RecipeDetail
     @Published var currentStepIndex: Int = 0
     @Published var isCookingMode = false
-    @Published var showVoiceHelp = false
     @Published var isMarkedCooked = false
 
     private let meal: Meal

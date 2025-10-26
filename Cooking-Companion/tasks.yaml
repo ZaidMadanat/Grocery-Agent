@@ -1,0 +1,181 @@
+{
+  "LiveKit Python Examples": {
+    "url": "https://livekit.mcpbin.org/mcp"
+  }
+}
+{
+  "LiveKit Docs": {
+    "url": "https://docs.livekit.io/mcp"
+  }
+}
+
+# cooking-companion.config.yaml
+# -----------------------------------------------------------------------------
+# Best practices
+# - Keep secrets ONLY in `.env`, never in Git or YAML. This file references env vars.
+# - Use least-privilege keys and rotate regularly.
+# - Log minimally in prod (no PII/audio transcripts), enable metrics and health checks.
+# - Prefer explicit model/version pins for reproducibility.
+# - Add rate limits & CORS; fail closed if env vars are missing.
+# - Keep LiveKit + LLM + STT/TTS modular so you can swap providers.
+# - Production: run behind a reverse proxy (TLS), and set strict CORS.
+# - References:
+#   LiveKit Python Examples: https://livekit.mcpbin.org/mcp
+#   LiveKit Docs (MCP):     https://docs.livekit.io/mcp
+# -----------------------------------------------------------------------------
+
+version: "1.0"
+
+service:
+  name: cooking-companion-api
+  description: Voice-first “step-by-step” cooking assistant (LiveKit + Claude + Deepgram)
+  env_file: .env                      # load secrets from here
+  host: 0.0.0.0
+  port: 8787
+  log_level: INFO                     # DEBUG during dev, INFO in prod
+  json_logging: true
+  enable_healthcheck: true
+
+security:
+  cors:
+    enabled: true
+    allow_origins:
+      - "http://localhost:5173"       # dev frontend
+      - "http://localhost:3000"
+      # - "https://your-prod-domain.com"
+    allow_methods: [GET, POST, OPTIONS]
+    allow_headers: ["*"]
+    allow_credentials: true
+  rate_limit:
+    enabled: true
+    requests_per_minute: 120
+  validate_env_on_boot: true          # crash fast if env is missing
+
+livekit:
+  url: ${LIVEKIT_URL}
+  api_key: ${LIVEKIT_API_KEY}
+  api_secret: ${LIVEKIT_API_SECRET}
+
+realtime:
+  # LiveKit room/agent defaults
+  auto_subscribe: audio               # subscribe to audio by default
+  audio:
+    sample_rate_hz: 48000
+    channels: 1
+    vad:
+      enabled: true
+      # swap or disable if you use different VAD; Silero is common:
+      engine: silero
+      threshold: 0.5
+  transcription:
+    enabled: true
+    provider: deepgram
+  tts:
+    enabled: true
+    provider: deepgram
+
+llm:
+  primary:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022 # pin a specific Claude version
+    api_key_env: ANTHROPIC_API_KEY
+    reasoning:
+      temperature: 0.3
+      max_tokens: 1024
+    system_prompt: |
+      You are Cooking Companion: a calm, hands-free kitchen guide.
+      - Speak in short, actionable steps.
+      - Confirm understanding before moving on.
+      - Offer timers and safety reminders.
+      - If user sounds uncertain, ask clarifying questions.
+  fallback:
+    enabled: true
+    provider: openai
+    model: gpt-4o-mini
+    api_key_env: OPENAI_API_KEY
+
+speech:
+  stt:
+    provider: deepgram
+    api_key_env: DEEPGRAM_API_KEY
+    model: nova-2                 # low-latency, good accuracy
+    language: en-US
+    interim_results: true
+    punctuate: true
+    diarize: false
+  tts:
+    provider: deepgram
+    api_key_env: DEEPGRAM_API_KEY
+    voice: aura-asteria           # pick any Deepgram Aura voice you like
+    format: mp3                   # or pcm16 / wav as needed
+    sample_rate_hz: 24000
+
+agents:
+  cooking_companion:
+    # High-level policy for “what to do next” prompts
+    turn_strategy:
+      barge_in: true              # interruptible when user speaks
+      max_silence_ms: 1500
+      reprompt: "Want me to repeat the last step or set a timer?"
+    tools:
+      - name: timers
+        enabled: true
+      - name: unit_conversion
+        enabled: true
+      - name: ingredient_substitution
+        enabled: true
+    memory:
+      enabled: true
+      window_turns: 8             # short-term context to keep steps coherent
+
+storage:
+  transcripts:
+    persist: false                # set true only if compliant with privacy policy
+    path: data/transcripts/
+  recordings:
+    persist: false
+    path: data/recordings/
+
+observability:
+  metrics:
+    enabled: true
+    path: /metrics
+  tracing:
+    enabled: false
+  audit:
+    redact_pii: true
+
+mcp:                                # Model Context Protocol surfaces tools/data
+  enabled: true
+  servers:
+    - name: livekit-examples
+      url: https://livekit.mcpbin.org/mcp
+    - name: livekit-docs
+      url: https://docs.livekit.io/mcp
+
+startup_checks:
+  - name: LIVEKIT connectivity
+    type: tcp
+    target_env: LIVEKIT_URL
+  - name: Anthropic key present
+    type: env
+    key: ANTHROPIC_API_KEY
+  - name: Deepgram key present
+    type: env
+    key: DEEPGRAM_API_KEY
+
+# Optional: HTTP endpoints you expose (if you’re also running a REST API)
+http:
+  routes:
+    - path: /healthz
+      method: GET
+      auth: none
+    - path: /session/create           # mint a LiveKit access token for clients
+      method: POST
+      auth: bearer
+    - path: /timer/set
+      method: POST
+      auth: bearer
+    - path: /agent/handoff
+      method: POST
+      auth: bearer

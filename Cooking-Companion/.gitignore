@@ -1,0 +1,18 @@
+# Environment
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.DS_Store
+
+# Virtual environment
+.venv/
+
+# LlamaIndex storage
+query-engine-storage/
+
+# Editor / OS files
+.vscode/
+.idea/

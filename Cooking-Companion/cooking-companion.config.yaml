@@ -1,0 +1,167 @@
+# -----------------------------------------------------------------------------
+# Cooking Companion configuration
+# -----------------------------------------------------------------------------
+# Best practices
+# - Keep secrets ONLY in `.env`, never in Git or YAML. This file references env vars.
+# - Use least-privilege keys and rotate regularly.
+# - Log minimally in prod (no PII/audio transcripts), enable metrics and health checks.
+# - Prefer explicit model/version pins for reproducibility.
+# - Add rate limits and CORS; fail closed if env vars are missing.
+# - Keep LiveKit + LLM + STT/TTS modular so you can swap providers.
+# - Production: run behind a reverse proxy (TLS), and set strict CORS.
+# - References:
+#   LiveKit Python Examples: https://livekit.mcpbin.org/mcp
+#   LiveKit Docs (MCP):     https://docs.livekit.io/mcp
+# -----------------------------------------------------------------------------
+
+version: "1.0"
+
+service:
+  name: cooking-companion-api
+  description: Voice-first "step-by-step" cooking assistant (LiveKit + Claude + Deepgram)
+  env_file: .env
+  host: 0.0.0.0
+  port: 8787
+  log_level: INFO
+  json_logging: true
+  enable_healthcheck: true
+
+security:
+  cors:
+    enabled: true
+    allow_origins:
+      - "http://localhost:5173"
+      - "http://localhost:3000"
+      # - "https://your-prod-domain.com"
+    allow_methods: [GET, POST, OPTIONS]
+    allow_headers: ["*"]
+    allow_credentials: true
+  rate_limit:
+    enabled: true
+    requests_per_minute: 120
+  validate_env_on_boot: true
+
+livekit:
+  url: ${LIVEKIT_URL}
+  api_key: ${LIVEKIT_API_KEY}
+  api_secret: ${LIVEKIT_API_SECRET}
+
+realtime:
+  auto_subscribe: audio
+  audio:
+    sample_rate_hz: 48000
+    channels: 1
+    vad:
+      enabled: true
+      engine: silero
+      threshold: 0.5
+  transcription:
+    enabled: true
+    provider: deepgram
+  tts:
+    enabled: true
+    provider: deepgram
+
+llm:
+  primary:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    api_key_env: ANTHROPIC_API_KEY
+    reasoning:
+      temperature: 0.3
+      max_tokens: 1024
+    system_prompt: |
+      You are Cooking Companion: a calm, hands-free kitchen guide.
+      - Speak in short, actionable steps.
+      - Confirm understanding before moving on.
+      - Offer timers and safety reminders.
+      - If user sounds uncertain, ask clarifying questions.
+  fallback:
+    enabled: true
+    provider: openai
+    model: gpt-4o-mini
+    api_key_env: OPENAI_API_KEY
+
+speech:
+  stt:
+    provider: deepgram
+    api_key_env: DEEPGRAM_API_KEY
+    model: nova-2
+    language: en-US
+    interim_results: true
+    punctuate: true
+    diarize: false
+  tts:
+    provider: deepgram
+    api_key_env: DEEPGRAM_API_KEY
+    voice: aura-asteria
+    format: mp3
+    sample_rate_hz: 24000
+
+agents:
+  cooking_companion:
+    turn_strategy:
+      barge_in: true
+      max_silence_ms: 1500
+      reprompt: "Want me to repeat the last step or set a timer?"
+    tools:
+      - name: timers
+        enabled: true
+      - name: unit_conversion
+        enabled: true
+      - name: ingredient_substitution
+        enabled: true
+    memory:
+      enabled: true
+      window_turns: 8
+
+storage:
+  transcripts:
+    persist: false
+    path: data/transcripts/
+  recordings:
+    persist: false
+    path: data/recordings/
+
+observability:
+  metrics:
+    enabled: true
+    path: /metrics
+  tracing:
+    enabled: false
+  audit:
+    redact_pii: true
+
+mcp:
+  enabled: true
+  servers:
+    - name: livekit-examples
+      url: https://livekit.mcpbin.org/mcp
+    - name: livekit-docs
+      url: https://docs.livekit.io/mcp
+
+startup_checks:
+  - name: LIVEKIT connectivity
+    type: tcp
+    target_env: LIVEKIT_URL
+  - name: Anthropic key present
+    type: env
+    key: ANTHROPIC_API_KEY
+  - name: Deepgram key present
+    type: env
+    key: DEEPGRAM_API_KEY
+
+http:
+  routes:
+    - path: /healthz
+      method: GET
+      auth: none
+    - path: /session/create
+      method: POST
+      auth: bearer
+    - path: /timer/set
+      method: POST
+      auth: bearer
+    - path: /agent/handoff
+      method: POST
+      auth: bearer

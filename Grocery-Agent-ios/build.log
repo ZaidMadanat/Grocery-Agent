@@ -1,0 +1,64 @@
+2025-10-25 19:36:42.033 xcodebuild[96464:10502415]  DVTFilePathFSEvents: Failed to start fs event stream.
+2025-10-25 19:36:42.135 xcodebuild[96464:10502406] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+2025-10-25 19:36:42.345 xcodebuild[96464:10502414] CoreSimulatorService connection became invalid.  Simulator services will no longer be available.
+2025-10-25 19:36:42.345 xcodebuild[96464:10502478] Logging connecton invalid: <OS_xpc_error: <dictionary: 0x1ee509460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1ee5095a8> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}>
+2025-10-25 19:36:42.345 xcodebuild[96464:10502478] Error opening log file (/Users/madanat/Library/Logs/CoreSimulator/CoreSimulator.com.apple.dt.xcodebuild.log): Operation not permitted
+[-[SimServiceContext sendRequest:]:1743] ERROR : Unable to deliver request ({
+    "developer_dir" = "/Applications/Xcode.app/Contents/Developer";
+    request = "set_developer_dir";
+}) because we are not connected to CoreSimulatorService.
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project "Grocery Agent.xcodeproj" -scheme "Grocery Agent" -configuration Debug -sdk iphonesimulator build
+
+Build settings from command line:
+    SDKROOT = iphonesimulator26.0
+
+2025-10-25 19:36:42.380 xcodebuild[96464:10502406] [MT] DVTAssertions: Warning in DVTFrameworks/DVTFoundation/FileTypes/DVTFileDataTypeDetection.m:79
+Details:  detectedTypeIdentifier (com.apple.xml-property-list) does not conform to matchedTypeIdentifier in MagicFileDataTypeDetector extenson com.apple.property-list. When both are specified, this conformance is required unless overridden by setting allowNonInheritance. extension.identifier:Xcode.MagicFileDataTypeDetector.XMLPlist
+Object:   <DVTFileDataTypeDetectionMagicCache: 0xc9fee0780>
+Method:   -initWithExtension:
+Thread:   <_NSMainThread: 0x10170d530>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+2025-10-25 19:36:42.381 xcodebuild[96464:10502406] [MT] DVTAssertions: Warning in DVTFrameworks/DVTFoundation/FileTypes/DVTFileDataTypeDetection.m:79
+Details:  detectedTypeIdentifier (com.apple.binary-property-list) does not conform to matchedTypeIdentifier in MagicFileDataTypeDetector extenson com.apple.property-list. When both are specified, this conformance is required unless overridden by setting allowNonInheritance. extension.identifier:Xcode.MagicFileDataTypeDetector.BinaryPlist
+Object:   <DVTFileDataTypeDetectionMagicCache: 0xc9fee20d0>
+Method:   -initWithExtension:
+Thread:   <_NSMainThread: 0x10170d530>{number = 1, name = main}
+Please file a bug at https://feedbackassistant.apple.com with this warning message and any useful information you can provide.
+[-[SimServiceContext initWithDeveloperDir:connectionType:error:]:450] WARN  : Unable to discover any Simulator runtimes. Developer Directory is /Applications/Xcode.app/Contents/Developer.
+[-[SimDiskImageManager init]:175] ERROR : Could not kickstart simdiskimaged; SimDiskImageManager services will not be available: Error Domain=NSPOSIXErrorDomain Code=53 "Software caused connection abort" UserInfo={NSLocalizedDescription=Error returned in reply from CoreSimulatorService: Connection invalid}
+[-[SimDiskImageManager _onQueue_checkConnection:]:239] ERROR : simdiskimaged returned error (invalid), marking disconnected.
+[-[SimServiceContext initWithDeveloperDir:connectionType:error:]_block_invoke:486] ERROR : Could not get list of trusted mount directories: Error Domain=com.apple.CoreSimulator.SimError Code=410 "The service used to manage runtime disk images (simdiskimaged) crashed or is not responding" UserInfo={NSLocalizedDescription=The service used to manage runtime disk images (simdiskimaged) crashed or is not responding}
+[-[SimDiskImageManager _onQueue_checkConnection:]:239] ERROR : simdiskimaged returned error (invalid), marking disconnected.
+[-[SimServiceContext sendRequest:reply:error:]:1763] ERROR : Unable to deliver request ({
+    request = "notification_subscription";
+    "set_path" = "/Users/madanat/Library/Developer/CoreSimulator/Devices";
+}) because we are not connected to CoreSimulatorService.
+2025-10-25 19:36:42.388 xcodebuild[96464:10502478] Error Domain=NSPOSIXErrorDomain Code=61 "Connection refused" UserInfo={NSLocalizedDescription=CoreSimulatorService connection became invalid.  Simulator services will no longer be available.}
+[-[SimServiceContext sendRequest:reply:error:]:1763] ERROR : Unable to deliver request ({
+    request = "notification_subscription";
+    "set_path" = "/Users/madanat/Library/Developer/CoreSimulator/Devices";
+}) because we are not connected to CoreSimulatorService.
+2025-10-25 19:36:42.389 xcodebuild[96464:10502478]  iOSSimulator: [SimServiceContext defaultDeviceSetWithError:] returned nil (Error Domain=NSPOSIXErrorDomain Code=61 "Connection refused" UserInfo={NSLocalizedFailureReason=Failed to subscribe to notifications from CoreSimulatorService., NSLocalizedDescription=Failed to initialize simulator device set., NSUnderlyingError=0xc9fefd260 {Error Domain=NSPOSIXErrorDomain Code=61 "Connection refused" UserInfo={NSLocalizedDescription=CoreSimulatorService connection became invalid.  Simulator services will no longer be available.}}}). Simulator device support disabled.
+2025-10-25 19:36:42.389 xcodebuild[96464:10502415] Error Domain=NSPOSIXErrorDomain Code=61 "Connection refused" UserInfo={NSLocalizedDescription=CoreSimulatorService connection became invalid.  Simulator services will no longer be available.}
+2025-10-25 19:36:42.389 xcodebuild[96464:10502415]  IDESimulatorAvailability: startObservingSimulatorUpdates() FAILED to register SimDeviceSet observer
+2025-10-25 19:36:42.528 xcodebuild[96464:10502406] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
+{ platform:macOS, arch:arm64, id:00008132-0002051E0205001C, name:My Mac }
+{ platform:macOS, arch:x86_64, id:00008132-0002051E0205001C, name:My Mac }
+{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+{ platform:macOS, name:Any Mac }
+{ platform:visionOS, id:dvtdevice-DVTiOSDevicePlaceholder-xros:placeholder, name:Any visionOS Device }
+{ platform:visionOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-xrsimulator:placeholder, name:Any visionOS Simulator Device }
+Build Preparation
+Couldn't create workspace arena folder '/Users/madanat/Library/Developer/Xcode/DerivedData/Grocery_Agent-ghldrffznmswothgzqftkuwbgdpv': Unable to write to info file '<DVTFilePath:0xca0189980:'/Users/madanat/Library/Developer/Xcode/DerivedData/Grocery_Agent-ghldrffznmswothgzqftkuwbgdpv/info.plist'>'.
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	Building project Grocery Agent with scheme Grocery Agent and configuration Debug
+(1 failure)

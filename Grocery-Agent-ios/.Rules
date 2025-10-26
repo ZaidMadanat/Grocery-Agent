@@ -1,0 +1,233 @@
+# ==========================================================
+#  Cursor AI Rules – GroceryAgent (Swift + Vapor + SwiftUI)
+# ==========================================================
+
+project:
+  name: "GroceryAgent"
+  description: >
+    AI-driven grocery and meal-planning agent built in Swift using Vapor (backend)
+    and SwiftUI (frontend). Integrates Letta (stateful AI), Chroma (embedding DB),
+    Groq (fast inference), LiveKit (voice interface), and Kroger API for grocery ordering.
+  goals:
+    - Automate grocery planning and ordering from user dietary and calorie goals.
+    - Optimize perishable item usage and reduce food waste.
+    - Provide voice and visual interfaces for recipes, macros, and inventory.
+    - Qualify for prize categories: Letta, Chroma, Groq, LiveKit, Conversion, and Social Impact.
+
+# ==========================================================
+#  Tech Stack Summary
+# ==========================================================
+
+tech_stack:
+  backend:
+    - Swift 6
+    - Vapor 5 (REST + WebSocket)
+    - PostgreSQL via Fluent ORM
+    - AsyncHTTPClient for API calls
+    - Swift Concurrency (async/await)
+    - Dockerized deployment via Vapor build image
+    - Redis (optional) for task queues / reminders
+  frontend:
+    - SwiftUI (iOS/macOS)
+    - Swift Charts (nutrition and macro visuals)
+    - LiveKit iOS SDK (voice communication)
+    - CoreData / SwiftData (local inventory cache)
+    - Combine or Observable pattern for reactivity
+  notifications:
+    - UNUserNotificationCenter (local notifications)
+    - Firebase Cloud Messaging (push notifications)
+    - BackgroundTasks framework (expiry alerts)
+  api_integration:
+    - Letta Cloud (stateful agent orchestration)
+    - Chroma (embedding storage & retrieval)
+    - Groq API (fast inference for meal planning)
+    - Kroger API (grocery item data & cart checkout)
+    - Instacart Deep Links (fallback)
+    - Composio Toolrouter (tool orchestration)
+  devops:
+    - GitHub Actions (CI/CD)
+    - Render or Fly.io (backend deployment)
+    - Vercel or Netlify (for static web fallback)
+    - Sentry (error tracking)
+    - SwiftFormat + SwiftLint (style enforcement)
+
+# ==========================================================
+#  Folder Structure
+# ==========================================================
+
+folder_structure: |
+  GroceryAgent/
+  ├── Backend/
+  │   ├── Controllers/
+  │   │   ├── GroceryController.swift
+  │   │   ├── RecipeController.swift
+  │   │   ├── AgentController.swift
+  │   │   └── NotificationController.swift
+  │   ├── Models/
+  │   │   ├── User.swift
+  │   │   ├── Recipe.swift
+  │   │   ├── GroceryItem.swift
+  │   │   ├── InventoryItem.swift
+  │   │   └── NotificationLog.swift
+  │   ├── Services/
+  │   │   ├── LettaService.swift
+  │   │   ├── ChromaService.swift
+  │   │   ├── GroqService.swift
+  │   │   ├── KrogerService.swift
+  │   │   └── NotificationService.swift
+  │   ├── Routes/
+  │   │   ├── api.swift
+  │   │   └── web.swift
+  │   ├── Config/
+  │   │   ├── app.yml
+  │   │   ├── env.example
+  │   │   └── secrets.env
+  │   └── main.swift
+  │
+  ├── Frontend/
+  │   ├── Views/
+  │   │   ├── DashboardView.swift
+  │   │   ├── RecipeView.swift
+  │   │   ├── InventoryView.swift
+  │   │   └── VoiceAssistantView.swift
+  │   ├── ViewModels/
+  │   │   ├── RecipeViewModel.swift
+  │   │   ├── InventoryViewModel.swift
+  │   │   └── AgentViewModel.swift
+  │   ├── Components/
+  │   │   ├── MacroChart.swift
+  │   │   ├── GroceryCard.swift
+  │   │   └── ExpiryAlert.swift
+  │   └── App.swift
+  │
+  ├── Shared/
+  │   ├── Utilities/
+  │   │   ├── Date+Extensions.swift
+  │   │   ├── HTTPError.swift
+  │   │   └── Logger.swift
+  │   └── Constants/
+  │       ├── APIKeys.swift
+  │       └── Endpoints.swift
+  │
+  ├── AI/
+  │   ├── AgentBrain.swift
+  │   ├── ToolRouter.swift
+  │   ├── ChromaClient.swift
+  │   └── LettaClient.swift
+  │
+  ├── Notifications/
+  │   ├── NotificationScheduler.swift
+  │   └── ExpiryChecker.swift
+  │
+  ├── Tests/
+  │   ├── BackendTests/
+  │   ├── AITests/
+  │   └── FrontendTests/
+  │
+  ├── Docs/
+  │   ├── README.md
+  │   ├── API_REFERENCE.md
+  │   └── HACKATHON_PITCH.md
+  │
+  ├── Package.swift
+  └── .cursor/rules
+
+# ==========================================================
+#  Global Coding Rules
+# ==========================================================
+
+rules:
+  - match: "*.swift"
+    actions:
+      - enforce_style: "swift-format"
+      - prefer:
+          - "async/await over callbacks"
+          - "Dependency injection for services"
+          - "Codable for all data models"
+      - discourage:
+          - "force unwraps (!)"
+          - "hardcoded credentials"
+          - "business logic in SwiftUI Views"
+      - import_order: "system, Vapor, project-local"
+      - comment_guidelines: >
+          Use `///` for documentation comments and `// MARK:` for section markers.
+
+# ==========================================================
+#  Module-Specific Rules
+# ==========================================================
+
+  - match: "Backend/**/*.swift"
+    actions:
+      - enforce_protocols: ["Content", "RouteCollection"]
+      - prefer:
+          - "Environment-based configuration"
+          - "Fluent Migrations for schema"
+      - discourage:
+          - "Unvalidated request bodies"
+      - comment_guidelines: >
+          Each route should specify its path, HTTP method, and response schema.
+
+  - match: "Frontend/**/*.swift"
+    actions:
+      - prefer:
+          - "@Observable or @StateObject for view models"
+          - "Swift Charts for visuals"
+          - "Dark mode + dynamic type support"
+      - discourage:
+          - "Heavy View logic; keep it in ViewModels"
+          - "Multiple network calls in Views"
+
+  - match: "AI/**/*.swift"
+    actions:
+      - prefer:
+          - "Unified AgentService for Letta/Chroma/Groq"
+          - "Centralized error handling"
+      - discourage:
+          - "Hardcoded prompt strings"
+          - "Unlogged API requests"
+      - comment_guidelines: >
+          Each AI integration should include endpoint, payload example, and response schema.
+
+  - match: "Notifications/**/*.swift"
+    actions:
+      - prefer:
+          - "UNUserNotificationCenter for local notifications"
+          - "BackgroundTasks for expiry reminders"
+      - discourage:
+          - "Repeated local scheduling without throttle"
+
+  - match: "Tests/**/*.swift"
+    actions:
+      - enforce_framework: "XCTest"
+      - prefer:
+          - "Mocked services for external APIs"
+          - "Arrange–Act–Assert test structure"
+      - discourage:
+          - "Network requests in tests"
+          - "Print statements for debugging"
+
+  - match: ["Package.swift", ".env*", "Config/**/*.yml"]
+    actions:
+      - discourage:
+          - "Hardcoded credentials"
+          - "Absolute paths"
+      - prefer:
+          - "Environment variable injection"
+          - "Semantic version pinning"
+
+  - match: ["Docs/**/*.md", "README.md"]
+    actions:
+      - style: "GitHub-Flavored Markdown"
+      - prefer:
+          - "Setup instructions"
+          - "Architecture diagram"
+          - "API key configuration notes"
+          - "Demo and pitch instructions"
+
+metadata:
+  author: "GroceryAgent Hackathon Team"
+  created: "2025-10-25"
+  license: "MIT"
+  notes: >
+    This file guides Cursor’s AI completions toward Swift best practices and consistent
+    project organization. Keep hackathon MVP focus: functional prototype over perfection.

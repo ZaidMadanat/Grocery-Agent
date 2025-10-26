@@ -35,10 +35,7 @@ final class DashboardViewModel: ObservableObject {
         isRegenerating = true
         Task {
             do {
-                let client = APIClient(
-                    baseURL: URL(string: "http://localhost:8000")!,
-                    tokenProvider: { AuthService.shared.getToken() }
-                )
+                let client = APIClient(tokenProvider: { AuthService.shared.getToken() })
                 struct Payload: Encodable { let days: Int }
                 let resp: WeeklyMealsResponse = try await client.postJSON(
                     "/weekly-meals/generate",

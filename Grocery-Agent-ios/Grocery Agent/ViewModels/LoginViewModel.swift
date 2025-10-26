@@ -15,10 +15,7 @@ final class LoginViewModel: ObservableObject {
 
         Task {
             do {
-                let client = APIClient(
-                    baseURL: URL(string: "http://localhost:8000")!,
-                    tokenProvider: { nil }
-                )
+                let client = APIClient(tokenProvider: { nil })
                 let resp: TokenResponse = try await client.postJSON(
                     "/auth/login",
                     payload: LoginRequest(email: email, password: password)

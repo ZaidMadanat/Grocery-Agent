@@ -4,6 +4,12 @@ struct APIClient {
     let baseURL: URL
     let tokenProvider: () -> String?
 
+    init(baseURL: URL = AppEnvironment.apiBaseURL,
+         tokenProvider: @escaping () -> String?) {
+        self.baseURL = baseURL
+        self.tokenProvider = tokenProvider
+    }
+
     private func request(_ path: String,
                          method: String = "GET",
                          query: [URLQueryItem]? = nil,
@@ -16,6 +22,7 @@ struct APIClient {
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
         if let t = tokenProvider() {
             req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization")
         }
@@ -23,16 +30,18 @@ struct APIClient {
         return req
     }
 
+    func getJSON<T: Decodable>(_ path: String,
+                               query: [URLQueryItem]? = nil) async throws -> T {
+        let req = request(path, method: "GET", query: query, body: nil)
+        return try await perform(req)
+    }
+
     func postJSON<T: Decodable>(_ path: String,
                                 payload: Encodable?,
                                 query: [URLQueryItem]? = nil) async throws -> T {
         let data = try payload.map { try JSONEncoder().encode(AnyEncodable($0)) }
         let req = request(path, method: "POST", query: query, body: data)
-        let (respData, resp) = try await URLSession.shared.data(for: req)
-        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
-        return try JSONDecoder().decode(T.self, from: respData)
+        return try await perform(req)
     }
 
     // Wrapper to encode any Encodable
@@ -41,5 +50,18 @@ struct APIClient {
         init(_ value: Encodable) { self.value = value }
         func encode(to encoder: Encoder) throws { try value.encode(to: encoder) }
     }
-}
 
+    private func perform<T: Decodable>(_ request: URLRequest) async throws -> T {
+        let (respData, resp) = try await URLSession.shared.data(for: request)
+        guard let http = resp as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            if let debugBody = String(data: respData, encoding: .utf8) {
+                print("[APIClient] \(http.statusCode) error: \(debugBody)")
+            }
+            throw URLError(.init(rawValue: http.statusCode))
+        }
+        return try JSONDecoder().decode(T.self, from: respData)
+    }
+}

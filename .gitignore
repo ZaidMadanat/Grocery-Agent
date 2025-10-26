@@ -12,3 +12,32 @@ venv/
 
 # macOS
 .DS_Store
+
+.env
+.env.*
+.venv/
+.venv-worker/
+__pycache__/
+*.py[cod]
+.DS_Store
+.vscode/
+.idea/
+*.log
+pip_install.log
+.pytest_cache/
+.coverage
+dist/
+build/
+*.egg-info/
+*.db
+*.sqlite*
+chroma_db/ (Chroma local store)
+Cooking-Companion/query-engine-storage/ (LlamaIndex persistence)
+Cooking-Companion/data/transcripts/
+Cooking-Companion/data/recordings/
+Grocery-Agent-ios/Grocery Agent.xcodeproj/xcuserdata/
+Grocery-Agent-ios/Grocery Agent.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+Grocery-Agent-ios/**/*.xcuserstate
+Grocery-Agent-ios/DerivedData/
+Grocery-Agent-ios/.swiftpm/
+Pods/ (if you ever add CocoaPods)

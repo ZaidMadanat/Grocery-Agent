@@ -24,8 +24,21 @@ enum MockDataService {
         let today = calendar.startOfDay(for: Date())
         let mealTypes: [MealType] = [.breakfast, .lunch, .dinner, .snacks]
 
+        // Define daily variations to make each day slightly different
+        let dayVariations: [(calorie: Int, proteinPct: Double, carbsPct: Double, fatsPct: Double)] = [
+            (0, 0.28, 0.42, 0.30),   // Monday
+            (30, 0.30, 0.40, 0.30),  // Tuesday
+            (-20, 0.29, 0.42, 0.29), // Wednesday
+            (40, 0.31, 0.39, 0.30),  // Thursday
+            (0, 0.28, 0.43, 0.29),   // Friday
+            (-30, 0.30, 0.41, 0.29), // Saturday
+            (50, 0.29, 0.40, 0.31)   // Sunday
+        ]
+
         return (0..<7).compactMap { offset in
             guard let date = calendar.date(byAdding: .day, value: offset, to: today) else { return nil }
+            let variation = dayVariations[offset % 7]
+            
             let meals = Dictionary(uniqueKeysWithValues: mealTypes.map { type -> (MealType, Meal) in
                 let baseCalories = switch type {
                 case .breakfast: 420
@@ -33,19 +46,22 @@ enum MockDataService {
                 case .dinner: 710
                 case .snacks: 180
                 }
+                
+                // Add variation to each meal's calories
+                let adjustedCalories = baseCalories + variation.calorie / 4
 
                 let macros = MacroBreakdown(
-                    calories: baseCalories,
-                    protein: Double(baseCalories) * 0.3 / 4,
-                    carbs: Double(baseCalories) * 0.4 / 4,
-                    fats: Double(baseCalories) * 0.3 / 9
+                    calories: adjustedCalories,
+                    protein: Double(adjustedCalories) * variation.proteinPct / 4,
+                    carbs: Double(adjustedCalories) * variation.carbsPct / 4,
+                    fats: Double(adjustedCalories) * variation.fatsPct / 9
                 )
 
                 let meal = Meal(
                     type: type,
                     name: sampleMealName(for: type, offset: offset),
                     description: "Chef-crafted \(type.rawValue.lowercased()) tuned to your macro goals.",
-                    calories: baseCalories,
+                    calories: adjustedCalories,
                     macros: macros,
                     imageName: sampleImage(for: type)
                 )
@@ -102,7 +118,7 @@ enum MockDataService {
         [
             GroceryItem(name: "Baby Spinach", quantity: "1 bag", mealType: .lunch, dayLabel: "Monday"),
             GroceryItem(name: "Steel Cut Oats", quantity: "1 box", mealType: .breakfast, dayLabel: "Tuesday"),
-            GroceryItem(name: "Salmon Filets", quantity: "4 pcs", mealType: .dinner, dayLabel: "Thursday"),
+            GroceryItem(name: "Protein Pasta", quantity: "1 box", mealType: .dinner, dayLabel: "Thursday"),
             GroceryItem(name: "Greek Yogurt", quantity: "2 tubs", mealType: .snacks, dayLabel: "Daily")
         ]
     }
@@ -140,7 +156,7 @@ enum MockDataService {
     }
 
     static func checkoutURL() -> URL {
-        URL(string: "https://www.kroger.com/cl/cart")!
+        URL(string: "https://www.kroger.com/cart")!
     }
 }
 
@@ -149,7 +165,7 @@ private extension MockDataService {
         switch type {
         case .breakfast: return ["Sunrise Oat Parfait", "Protein Power Pancakes", "Spinach Feta Omelette"][offset % 3]
         case .lunch: return ["Mediterranean Grain Bowl", "Tahini Chickpea Wrap", "Miso Ginger Stir Fry"][offset % 3]
-        case .dinner: return ["Herb Crusted Salmon", "Roasted Veggie Pasta", "Coconut Curry Lentils"][offset % 3]
+        case .dinner: return ["Roasted Veggie Pasta", "Herb Crusted Salmon", "Coconut Curry Lentils"][offset % 3]
         case .snacks: return ["Greek Yogurt Crunch", "Matcha Energy Bites", "Apple Almond Dippers"][offset % 3]
         }
     }

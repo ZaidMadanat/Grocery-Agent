@@ -48,6 +48,19 @@ struct LoginView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(vm.isLoading)
 
+                // Sign Up navigation
+                NavigationLink {
+                    SignUpView(onSuccess: onSuccess)
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Don't have an account?")
+                            .foregroundStyle(.secondary)
+                        Text("Sign Up")
+                            .bold()
+                    }
+                }
+                .padding(.top, 8)
+
                 Spacer()
             }
             .padding(24)

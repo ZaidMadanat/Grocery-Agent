@@ -3,8 +3,8 @@ import Combine
 
 @MainActor
 final class LoginViewModel: ObservableObject {
-    @Published var email: String = "you@example.com"
-    @Published var password: String = "passw0rd!"
+    @Published var email: String = ""
+    @Published var password: String = ""
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 

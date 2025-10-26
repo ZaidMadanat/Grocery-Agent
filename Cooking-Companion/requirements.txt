@@ -1,3 +1,10 @@
-livekit-agents[openai, cartesia, elevenlabs, deepgram, silero, turn-detector, mcp]>=1.0
+livekit-agents[openai, cartesia, elevenlabs, deepgram, silero, turn-detector, mcp, anthropic]>=1.0
 python-dotenv>=1.0
 duckduckgo-search>=8.0
+
+# LlamaIndex (for RAG over recipes) - updated versions for compatibility
+llama-index-core>=0.14
+llama-index-llms-anthropic>=0.9
+llama-index-embeddings-openai>=0.5
+# Anthropic SDK
+anthropic>=0.69

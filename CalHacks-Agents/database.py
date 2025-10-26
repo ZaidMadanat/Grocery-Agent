@@ -280,7 +280,7 @@ class Notification(Base):
     message = Column(String, nullable=False)
     type = Column(String, default="system")
     is_read = Column(Boolean, default=False)
-    metadata = Column(JSON)
+    meta_data = Column(JSON)  # Renamed from 'metadata' to avoid SQLAlchemy reserved name
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="notifications")
@@ -474,7 +474,7 @@ def create_notification(db: Session, user_id: int, title: str, message: str, not
         title=title,
         message=message,
         type=notif_type,
-        metadata=metadata or {}
+        meta_data=metadata or {}  # Updated field name
     )
     db.add(notification)
     db.commit()

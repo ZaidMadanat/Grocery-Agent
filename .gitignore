@@ -9,9 +9,41 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+.venv-worker/
 
 # macOS
 .DS_Store
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Logs and test artifacts
+*.log
+pip_install.log
+.pytest_cache/
+.coverage
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Local databases / storage
+*.db
+*.sqlite*
+chroma_db/
+Cooking-Companion/query-engine-storage/
+Cooking-Companion/data/transcripts/
+Cooking-Companion/data/recordings/
+
+# Xcode / iOS
+Grocery-Agent-ios/Grocery Agent.xcodeproj/xcuserdata/
+Grocery-Agent-ios/Grocery Agent.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+Grocery-Agent-ios/**/*.xcuserstate
+Grocery-Agent-ios/DerivedData/
+Grocery-Agent-ios/.swiftpm/
+Pods/
 
 .env
 .env.*

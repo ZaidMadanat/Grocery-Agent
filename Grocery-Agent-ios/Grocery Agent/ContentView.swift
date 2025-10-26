@@ -9,10 +9,16 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var appModel = AppViewModel()
+    @State private var hasToken: Bool = AuthService.shared.getToken() != nil
 
     var body: some View {
         Group {
-            if appModel.isOnboarded {
+            if !hasToken {
+                LoginView {
+                    hasToken = true
+                }
+                .transition(.opacity)
+            } else if appModel.isOnboarded {
                 MainShellView(appModel: appModel)
                     .transition(.opacity.combined(with: .scale))
             } else {
@@ -20,6 +26,7 @@ struct ContentView: View {
                     .transition(.move(edge: .trailing))
             }
         }
+        .animation(.easeInOut, value: hasToken)
         .animation(.easeInOut, value: appModel.isOnboarded)
     }
 }

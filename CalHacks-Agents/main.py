@@ -14,9 +14,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, date
 
-# Suppress PyTorch deprecation warnings
-warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
-warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
+# Suppress general deprecation warnings from optional dependencies
 
 from fastapi import FastAPI, HTTPException, status, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -258,7 +256,7 @@ def _notification_to_dict(notification: Notification) -> Dict[str, Any]:
         "message": notification.message,
         "type": notification.type,
         "is_read": notification.is_read,
-        "metadata": notification.metadata or {},
+        "metadata": notification.meta_data or {},
         "created_at": notification.created_at.isoformat() if notification.created_at else None,
     }
 

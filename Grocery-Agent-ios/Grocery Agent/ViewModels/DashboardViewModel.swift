@@ -34,11 +34,61 @@ final class DashboardViewModel: ObservableObject {
         guard !isRegenerating else { return }
         isRegenerating = true
         Task {
-            try await Task.sleep(for: .seconds(1))
-            let refreshed = MockDataService.weeklyPlan().shuffled()
-            appModel.updateMealPlan(refreshed)
-            week = refreshed
-            isRegenerating = false
+            do {
+                let client = APIClient(
+                    baseURL: URL(string: "http://localhost:8000")!,
+                    tokenProvider: { AuthService.shared.getToken() }
+                )
+                struct Payload: Encodable { let days: Int }
+                let resp: WeeklyMealsResponse = try await client.postJSON(
+                    "/weekly-meals/generate",
+                    payload: Payload(days: 7)
+                )
+
+                let iso = ISO8601DateFormatter()
+                func toMeal(_ p: MealPayload, type: MealType) -> Meal {
+                    let macros = MacroBreakdown(
+                        calories: Int(p.calories ?? 0),
+                        protein: p.protein ?? 0,
+                        carbs: p.carbs ?? 0,
+                        fats: p.fat ?? 0
+                    )
+                    return Meal(
+                        type: type,
+                        name: p.title,
+                        description: p.description ?? "",
+                        calories: Int(p.calories ?? 0),
+                        macros: macros,
+                        imageName: nil
+                    )
+                }
+
+                let mapped: [MealPlanDay] = resp.week.map { day in
+                    let date = iso.date(from: day.date) ?? Date()
+                    let meals: [MealType: Meal] = [
+                        .breakfast: toMeal(day.breakfast, type: .breakfast),
+                        .lunch: toMeal(day.lunch, type: .lunch),
+                        .dinner: toMeal(day.dinner, type: .dinner)
+                    ]
+                    let totals = day.totals
+                    let dm = MacroBreakdown(
+                        calories: Int(totals?.calories ?? 0),
+                        protein: totals?.protein ?? 0,
+                        carbs: totals?.carbs ?? 0,
+                        fats: totals?.fat ?? 0
+                    )
+                    return MealPlanDay(date: date, meals: meals, macros: dm)
+                }
+
+                await MainActor.run {
+                    self.appModel.updateMealPlan(mapped)
+                    self.week = mapped
+                    self.isRegenerating = false
+                }
+            } catch {
+                await MainActor.run { self.isRegenerating = false }
+                print("[Dashboard] weekly-meals error:", error)
+            }
         }
     }
 

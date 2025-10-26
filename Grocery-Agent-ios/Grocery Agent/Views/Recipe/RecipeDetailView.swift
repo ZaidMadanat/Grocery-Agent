@@ -41,6 +41,19 @@ struct RecipeDetailView: View {
                     Label("Start Cooking", systemImage: "play.circle.fill")
                 }
             }
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    Task {
+                        do {
+                            _ = try await VoiceService.createSession()
+                        } catch {
+                            print("voice session error:", error)
+                        }
+                    }
+                } label: {
+                    Label("Voice", systemImage: "waveform")
+                }
+            }
         }
         .toolbar {
             ToolbarItem(placement: .bottomBar) {

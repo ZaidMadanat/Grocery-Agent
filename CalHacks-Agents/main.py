@@ -13,6 +13,8 @@ import uuid
 from typing import Dict, Any, Optional, List, Tuple
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, date
+from pathlib import Path
+
 
 # Suppress general deprecation warnings from optional dependencies
 
@@ -50,7 +52,8 @@ from database import (
 from auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
 # Load environment variables
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR.parent / ".env")
 
 # Setup logger
 logger = setup_logger("AgenticGrocery")

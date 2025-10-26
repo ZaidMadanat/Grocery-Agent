@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import LiveKit
+import AVFoundation
 
 @MainActor
 final class VoiceSessionManager: ObservableObject {
@@ -12,6 +13,7 @@ final class VoiceSessionManager: ObservableObject {
     @Published private(set) var lastError: Error?
 
     private var room: Room?
+    private var audioSessionConfigured = false
 
     private init() {}
 
@@ -22,6 +24,9 @@ final class VoiceSessionManager: ObservableObject {
         lastError = nil
 
         do {
+            try configureAudioSession()
+            try AVAudioSession.sharedInstance().setActive(true, options: [])
+
             let session = try await VoiceService.createSession(room: activeRoomName)
 
             let room = Room()
@@ -43,6 +48,18 @@ final class VoiceSessionManager: ObservableObject {
         isConnecting = false
     }
 
+    private func configureAudioSession() throws {
+        let audioSession = AVAudioSession.sharedInstance()
+        let desiredOptions: AVAudioSession.CategoryOptions = [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP]
+
+        try audioSession.setCategory(.playAndRecord, mode: .voiceChat, options: desiredOptions)
+        try audioSession.setPreferredSampleRate(48_000)
+        try audioSession.setPreferredIOBufferDuration(0.01)
+        try audioSession.setActive(true, options: [])
+
+        audioSessionConfigured = true
+    }
+
     func stopSession() async {
         await cleanup()
     }
@@ -55,10 +72,17 @@ final class VoiceSessionManager: ObservableObject {
         }
     }
 
-    private func cleanup() async {
+    private func cleanup(deactivateAudio: Bool = true) async {
         if let room = room {
             room.remove(delegate: self)
             try? await room.disconnect()
+        }
+
+        if deactivateAudio, audioSessionConfigured {
+            let audioSession = AVAudioSession.sharedInstance()
+            try? audioSession.setCategory(.soloAmbient, mode: .default, options: [])
+            try? audioSession.setActive(false, options: [.notifyOthersOnDeactivation])
+            audioSessionConfigured = false
         }
 
         room = nil

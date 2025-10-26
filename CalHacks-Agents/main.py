@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
-from jose import jwt
+from livekit.api import AccessToken, VideoGrants
 from anthropic import Anthropic
 
 # Import agent modules
@@ -889,33 +889,35 @@ async def create_livekit_session(
             detail="LiveKit environment variables are not configured"
         )
 
-    room_name = request.room or f"cooking-{current_user.username}-{datetime.utcnow().strftime('%Y%m%d')}"
-    identity = request.identity or f"user-{current_user.id}"
-
-    ttl_seconds = request.ttl_seconds or 3600
+    ttl_raw = request.ttl_seconds or 3600
+    ttl_seconds = max(min(ttl_raw, 86400), 60)
     expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
 
-    room_claim = {
-        "name": room_name,
-        "join": True,
-    }
+    room_name = request.room or f"cooking-{current_user.username}-{datetime.utcnow().strftime('%Y%m%d')}"
+    identity = request.identity or f"{current_user.username}-{uuid.uuid4().hex[:8]}"
+
+    grants = VideoGrants(
+        room=room_name,
+        room_join=True,
+        room_create=True,
+        can_publish=True,
+        can_subscribe=True,
+        can_publish_data=True,
+    )
+
+    token_builder = AccessToken(api_key=LIVEKIT_API_KEY, api_secret=LIVEKIT_API_SECRET)
+    token_builder = token_builder.with_identity(identity)
+    token_builder = token_builder.with_name(current_user.name or current_user.username)
+    token_builder = token_builder.with_grants(grants)
+    token_builder = token_builder.with_ttl(timedelta(seconds=ttl_seconds))
 
     if request.metadata:
         try:
-            room_claim["metadata"] = json.dumps(request.metadata)
+            token_builder = token_builder.with_metadata(json.dumps(request.metadata))
         except (TypeError, ValueError):
-            room_claim["metadata"] = json.dumps({"note": "metadata serialization failed"})
+            token_builder = token_builder.with_metadata(json.dumps({"note": "metadata serialization failed"}))
 
-    payload = {
-        "iss": LIVEKIT_API_KEY,
-        "sub": identity,
-        "exp": int(expires_at.timestamp()),
-        "video": {
-            "room": room_claim
-        }
-    }
-
-    token = jwt.encode(payload, LIVEKIT_API_SECRET, algorithm="HS256")
+    token = token_builder.to_jwt()
 
     logger.info(f"🎤 LiveKit token minted for {current_user.username} → room {room_name}")
 

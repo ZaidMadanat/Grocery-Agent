@@ -6,5 +6,12 @@
 	<array>
 		<dict/>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Voice guidance needs access to your microphone so the cooking assistant can hear you.</string>
 </dict>
 </plist>

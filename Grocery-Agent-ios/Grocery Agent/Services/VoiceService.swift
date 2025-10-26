@@ -28,7 +28,7 @@ struct SessionCreateResponse: Decodable {
     let url: String
     let room: String
     let identity: String
-    let expiresAt: Date
+    let expiresAt: Date?
 
     private enum CodingKeys: String, CodingKey {
         case token
@@ -45,22 +45,34 @@ struct SessionCreateResponse: Decodable {
         room = try container.decode(String.self, forKey: .room)
         identity = try container.decode(String.self, forKey: .identity)
 
-        let expiresRaw = try container.decode(String.self, forKey: .expiresAt)
-        guard let parsedDate = SessionCreateResponse.isoFormatter.date(from: expiresRaw) else {
-            throw DecodingError.dataCorruptedError(
-                forKey: .expiresAt,
-                in: container,
-                debugDescription: "Unable to parse expires_at '\(expiresRaw)'"
-            )
+        if let expiresRaw = try container.decodeIfPresent(String.self, forKey: .expiresAt) {
+            expiresAt = SessionCreateResponse.parseDate(from: expiresRaw)
+        } else {
+            expiresAt = nil
         }
-        expiresAt = parsedDate
     }
 
-    private static let isoFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
+    private static func parseDate(from raw: String) -> Date? {
+        for formatter in iso8601Formatters {
+            if let date = formatter.date(from: raw) {
+                return date
+            }
+        }
+        return nil
+    }
+
+    private static let iso8601Formatters: [ISO8601DateFormatter] = {
+        let withFractional = ISO8601DateFormatter()
+        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        let plain = ISO8601DateFormatter()
+        plain.formatOptions = [.withInternetDateTime]
+        return [withFractional, plain]
     }()
+
+    var liveKitURL: URL? {
+        URL(string: url)
+    }
 }
 
 enum VoiceService {

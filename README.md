@@ -17,7 +17,7 @@
 
 ## Inspiration
 
-The daily question of "What's for dinner?" often leads to decision fatigue, wasted food, and last-minute unhealthy choices. We were inspired to streamline the entire meal preparation process, from initial idea to finished plate. We envisioned a single, intelligent agent that could handle the mental load of planning, shopping, and tracking, allowing people to rediscover the joy of cooking without the usual stress. Plateful was born from the desire to make home cooking not just easier, but truly effortless and enjoyable. 🧑‍🍳
+The daily question of "What's for dinner?" often leads to decision fatigue, wasted food, and last-minute unhealthy choices. We were inspired to streamline the entire meal preparation process, from initial idea to finished plate. We envisioned a single, intelligent agent that could handle the mental load of planning, shopping, and tracking, allowing people to rediscover the joy of cooking without the usual stress. Plateful was born from the desire to make home cooking not just easier, but truly effortless and enjoyable.
 
 ---
 
@@ -27,7 +27,7 @@ Plateful is a comprehensive kitchen assistant, powered by a sophisticated two-ag
 
 1.  **Personalized AI Meal Planning (Recipe Agent):** The **Recipe Agent**, built on the **Claude API**, is the core planner. It analyzes your user profile—including macros, daily calorie targets, and dietary restrictions—to generate a full week of personalized recipes. Using a **Retrieval-Augmented Generation (RAG)** architecture, it learns from your meal history stored in a **ChromaDB** vector store to make its suggestions smarter and more tailored over time.
 
-2.  **Smart Grocery Ordering (Grocery Agent):** Once you approve a meal plan, the **Grocery Agent** takes over. It communicates directly with the Recipe Agent, receives the ingredient list, and uses tools to interact with the **Kroger Public API**. It populates your cart with the exact items and quantities needed, making your entire weekly shop ready for checkout with a single click. 🛒
+2.  **Smart Grocery Ordering (Grocery Agent):** Once you approve a meal plan, the **Grocery Agent** takes over. It communicates directly with the Recipe Agent, receives the ingredient list, and uses tools to interact with the **Kroger Public API**. It populates your cart with the exact items and quantities needed, making your entire weekly shop ready for checkout with a single click.
 
 3.  **Context-Aware Voice Companion:** Elevating the cooking experience, our voice companion offers hands-free guidance. Built with **LiveKit** for real-time audio streaming and **LlamaIndex** for context-awareness, it knows exactly which step you're on. You can ask questions and control the flow of the recipe with your voice, making the process interactive and seamless.
 

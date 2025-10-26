@@ -1,0 +1,201 @@
+version: 1
+services:
+  api:
+    name: agentic-grocery-api
+    command: uvicorn CalHacks-Agents.main:app --host 0.0.0.0 --port 8000
+    env_file: .env
+  worker:
+    name: cooking-companion-worker
+    command: python Cooking-Companion/cooking_companion.py
+    env_file: .env
+
+env:
+  required:
+    - LIVEKIT_URL
+    - LIVEKIT_API_KEY
+    - LIVEKIT_API_SECRET
+    - ANTHROPIC_API_KEY
+    - DEEPGRAM_API_KEY
+    - OPENAI_API_KEY
+
+tasks:
+  - name: env.validate
+    description: Verify required secrets exist
+    steps:
+      - type: shell
+        cmd: |
+          python - <<'PY'
+          import os, sys
+          need = ["LIVEKIT_URL","LIVEKIT_API_KEY","LIVEKIT_API_SECRET","ANTHROPIC_API_KEY","DEEPGRAM_API_KEY","OPENAI_API_KEY"]
+          missing = [key for key in need if not os.getenv(key)]
+          if missing:
+              print("MISSING:", ",".join(missing))
+              sys.exit(1)
+          print("OK")
+          PY
+
+  - name: api.run
+    description: Start FastAPI backend
+    service: api
+
+  - name: worker.start
+    description: Start LiveKit voice agent (Claude+Deepgram)
+    service: worker
+
+  - name: token.mint
+    description: Mint LiveKit token for a room
+    prerequisites: [api.run]
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8000/session/create
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+          Content-Type: application/json
+        body:
+          room: cooking-demo
+          ttl_seconds: 3600
+
+  - name: profile.update
+    description: Save or update user preferences
+    steps:
+      - type: http
+        method: PUT
+        url: http://localhost:8000/profile
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+          Content-Type: application/json
+        body:
+          daily_calories: 2200
+          dietary_restrictions: ["vegetarian", "gluten-free"]
+          likes: ["indian", "spicy"]
+          macros:
+            protein: 140
+            carbs: 200
+            fats: 60
+
+  - name: plan.generate.day
+    description: Generate meals for a single day
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8000/daily-meals/generate-by-day?day=Monday
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+
+  - name: plan.generate.weekly
+    description: Generate a full seven-day plan
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8000/weekly-meals/generate
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+        body:
+          start_date: null
+          days: 7
+
+  - name: grocery.from-recipe
+    description: Create a grocery list from a recipe with Kroger pricing
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8000/grocery/from-recipe
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+          Content-Type: application/json
+        body:
+          title: Paneer Tikka Bowl
+          servings: 2
+          ingredients:
+            - name: paneer
+              quantity: 200
+              unit: g
+            - name: bell pepper
+              quantity: 2
+              unit: count
+            - name: yogurt
+              quantity: 1
+              unit: cup
+
+  - name: grocery.items.update
+    description: Update item quantity or checked state
+    steps:
+      - type: http
+        method: PATCH
+        url: http://localhost:8000/grocery-lists/<LIST_ID>/items/<ITEM_ID>
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+          Content-Type: application/json
+        body:
+          quantity: 2 packs
+          is_checked: true
+
+  - name: grocery.items.delete
+    description: Remove an item from a grocery list
+    steps:
+      - type: http
+        method: DELETE
+        url: http://localhost:8000/grocery-lists/<LIST_ID>/items/<ITEM_ID>
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+
+  - name: inventory.fetch
+    description: Fetch inventory items
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8000/inventory
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+
+  - name: inventory.update
+    description: Update inventory item quantity
+    steps:
+      - type: http
+        method: PATCH
+        url: http://localhost:8000/inventory/<ITEM_ID>
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+          Content-Type: application/json
+        body:
+          quantity: 3
+          unit: count
+
+  - name: notifications.list
+    description: Fetch notifications
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8000/notifications
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+
+  - name: notifications.read
+    description: Mark a notification as read
+    steps:
+      - type: http
+        method: POST
+        url: http://localhost:8000/notifications/<ID>/read
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+
+  - name: recipe.qa
+    description: Ask a question about a recipe (RAG)
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8000/recipes/<ID>/qa
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>
+        query:
+          question: What temp is the oven?
+
+  - name: stats.snapshot
+    description: Fetch user stats overview
+    steps:
+      - type: http
+        method: GET
+        url: http://localhost:8000/stats
+        headers:
+          Authorization: Bearer <ACCESS_TOKEN>

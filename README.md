@@ -2,7 +2,7 @@
 
 > Your AI kitchen agent that plans meals, orders groceries from Kroger, tracks your pantry, and guides you step-by-step with a voice companion to make cooking effortless.
 
-![Plateful App](./assets/plateful-app-screenshot.png)
+![Plateful App](./logo.png)
 
 ---
 

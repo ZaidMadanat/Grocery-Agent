@@ -438,6 +438,20 @@ def _extract_product_data(product: Dict[str, Any], original_ingredient: str) -> 
         price_data = items[0]["price"]
         price = price_data.get("regular", price_data.get("promo"))
     
+    # return {
+    #     "name": product.get("description", original_ingredient),
+    #     "price": price,
+    #     "product_id": product.get("productId"),
+    #     "upc": product.get("upc"),
+    #     "brand": product.get("brand"),
+    #     "size": items[0].get("size") if items else None,
+    #     "image_url": product.get("images", [{}])[0].get("sizes", [{}])[0].get("url") if product.get("images") else None
+    # }
+    # Extract product page URL and make it absolute
+    product_page_url = product.get("productPageURI")
+    if product_page_url and not product_page_url.startswith("http"):
+        product_page_url = f"https://www.kroger.com{product_page_url}"
+    
     return {
         "name": product.get("description", original_ingredient),
         "price": price,
@@ -445,7 +459,8 @@ def _extract_product_data(product: Dict[str, Any], original_ingredient: str) -> 
         "upc": product.get("upc"),
         "brand": product.get("brand"),
         "size": items[0].get("size") if items else None,
-        "image_url": product.get("images", [{}])[0].get("sizes", [{}])[0].get("url") if product.get("images") else None
+        "image_url": product.get("images", [{}])[0].get("sizes", [{}])[0].get("url") if product.get("images") else None,
+        "product_page_url": product_page_url
     }
 
 
